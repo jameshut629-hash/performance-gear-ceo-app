@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Project zip download karein
+        run: curl -L -o project.zip "https://muse.ai/files/1422772990918355/2036603293676831/fyqvy6jwqicphhrny8ul20w7/performance-gear-ceo-app-v1-src.zip"
+      - name: Zip extract karein
+        run: unzip -q project.zip -d project
+      - name: Java 17 set karein
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Flutter install karein (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Dependencies lein
+        run: flutter pub get
+        working-directory: project/performance-gear-ceo-app
+      - name: APK banayen
+        run: flutter build apk --release
+        working-directory: project/performance-gear-ceo-app
+      - name: APK ko download ke liye rakhen
+        uses: actions/upload-artifact@v4
+        with:
+          name: PerformanceGear-CEO-APK
+          path: project/performance-gear-ceo-app/build/app/outputs/flutter-apk/app-release.apk
+      - name: APK ko v1.0 release par upload karein
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0
+          files: project/performance-gear-ceo-app/build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
